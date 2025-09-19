@@ -29,9 +29,23 @@ gh repo view --json url --jq .url
 ```
 ````
 
-You can also just type `ask` without arguments for interactive input. This is useful for questions containing special characters that would need escaping in the shell.
+You can also just type `ask` without arguments for interactive input. Interactive mode reads until EOF (Ctrl-D), so multi-line prompts work well and piped input is supported.
+
+Examples:
+
+```bash
+# Multiline interactive prompt (finish with Ctrl-D)
+ask
+```
+
+```bash
+# Piped input
+printf "line 1\nline 2\n" | ask
+```
 
 ## Installation
+
+Prerequisite: Ensure the `claude` CLI is available in your current shell (e.g., `claude --version`). If not, the `ask` function will print an error at runtime.
 
 Run the install script:
 
@@ -42,12 +56,12 @@ Run the install script:
 Then restart your shell or run:
 
 ```bash
-source ~/.bashrc   # for bash
-source ~/.zshrc    # for zsh
-source ~/.config/fish/config.fish   # for fish
+source ~/.bashrc                         # bash
+source ~/.zshrc                          # zsh
+source ~/.config/fish/functions/ask.fish # fish
 ```
 
-You can inspect the install script to see exactly what it does and perform the installation manually if preferred.
+The installer does not auto-source your shell configuration; it prints clear next steps instead. You can inspect the install script to see exactly what it does and perform the installation manually if preferred.
 
 ## Configuration
 
@@ -71,3 +85,10 @@ You can modify this file to customize Claude Code's permissions for your `ask` s
 - `"WebFetch(domain:example.com)"` - to allow fetching web pages from certain domains
 
 Edit the file at `~/.claude-ask/.claude/settings.local.json` to adjust permissions to your needs. Remember that these permissions only apply to the isolated `ask` environment, not your regular Claude Code usage.
+
+## Uninstall
+
+- bash: remove the `ask` function block from `~/.bashrc` and restart your shell.
+- zsh: remove the `ask` function block from `~/.zshrc` and restart your shell.
+- fish: delete `~/.config/fish/functions/ask.fish` and restart fish.
+- optional: remove the workspace: `rm -rf ~/.claude-ask`.
