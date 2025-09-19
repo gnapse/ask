@@ -9,14 +9,26 @@ SHELL_NAME=$(basename "$SHELL")
 BASH_ZSH_FUNCTION='ask() {
     mkdir -p ~/.claude-ask
     pushd ~/.claude-ask > /dev/null
-    claude -p "$*"
+    if [ $# -eq 0 ]; then
+        echo "Ask Claude Code:"
+        read -r input
+        claude -p "$input"
+    else
+        claude -p "$*"
+    fi
     popd > /dev/null
 }'
 
 FISH_FUNCTION='function ask
     mkdir -p ~/.claude-ask
     pushd ~/.claude-ask
-    claude -p "$argv"
+    if test (count $argv) -eq 0
+        echo "Ask Claude Code:"
+        read -l input
+        claude -p "$input"
+    else
+        claude -p "$argv"
+    end
     popd
 end'
 

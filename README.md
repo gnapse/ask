@@ -29,6 +29,8 @@ gh repo view --json url --jq .url
 ```
 ````
 
+You can also just type `ask` without arguments for interactive input. This is useful for questions containing special characters that would need escaping in the shell.
+
 ## Installation
 
 Run the install script:
