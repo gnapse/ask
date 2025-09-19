@@ -62,31 +62,32 @@ case "$SHELL_NAME" in
         ;;
 esac
 
-# Check if function already exists and remove it
-FUNCTION_EXISTS=false
-if grep -q "ask()" "$CONFIG_FILE" 2>/dev/null || grep -q "function ask" "$CONFIG_FILE" 2>/dev/null; then
-    FUNCTION_EXISTS=true
-    echo "Ask function already exists in $CONFIG_FILE - updating..."
+# Check for existing function blocks and remove only our installed block
+MARKER='# Ask function - added by install script'
+OUR_BLOCK_EXISTS=false
+OTHER_ASK_EXISTS=false
 
-    # Remove existing function and comment
+if grep -q "$MARKER" "$CONFIG_FILE" 2>/dev/null; then
+    OUR_BLOCK_EXISTS=true
+    echo "Updating existing 'ask' function installed by this script in $CONFIG_FILE..."
     if [ "$SHELL_NAME" = "fish" ]; then
-        # Remove fish function block
-        sed -i.bak '/# Ask function - added by install script/,/^end$/d' "$CONFIG_FILE" 2>/dev/null || true
-        sed -i.bak '/^function ask$/,/^end$/d' "$CONFIG_FILE" 2>/dev/null || true
+        sed -i.bak "/$MARKER/,/^end$/d" "$CONFIG_FILE" 2>/dev/null || true
     else
-        # Remove bash/zsh function block
-        sed -i.bak '/# Ask function - added by install script/,/^}$/d' "$CONFIG_FILE" 2>/dev/null || true
-        sed -i.bak '/^ask() {$/,/^}$/d' "$CONFIG_FILE" 2>/dev/null || true
+        sed -i.bak "/$MARKER/,/^}$/d" "$CONFIG_FILE" 2>/dev/null || true
     fi
-
-    # Clean up backup file
     rm -f "$CONFIG_FILE.bak" 2>/dev/null || true
 else
-    echo "Installing ask function to $CONFIG_FILE..."
+    if grep -q "^ask() {" "$CONFIG_FILE" 2>/dev/null || grep -q "^function ask" "$CONFIG_FILE" 2>/dev/null; then
+        OTHER_ASK_EXISTS=true
+        echo "Warning: an existing 'ask' function is defined in $CONFIG_FILE and will not be modified."
+        echo "The installed 'ask' function will be appended and take precedence in new shells."
+    else
+        echo "Installing ask function to $CONFIG_FILE..."
+    fi
 fi
 
 # Add function to config file
-if [ "$FUNCTION_EXISTS" = false ]; then
+if [ "$OUR_BLOCK_EXISTS" = false ] && [ "$OTHER_ASK_EXISTS" = false ]; then
     echo "" >> "$CONFIG_FILE"
 fi
 echo "# Ask function - added by install script" >> "$CONFIG_FILE"
