@@ -7,40 +7,45 @@
 # Detect current shell
 SHELL_NAME=$(basename "$SHELL")
 
-# Function definitions
-BASH_ZSH_FUNCTION='ask() {
+# Function definitions (heredocs to preserve quoting reliably)
+read -r -d '' BASH_ZSH_FUNCTION << 'BASHFUNC'
+ask() {
     if ! command -v claude >/dev/null 2>&1; then
         echo "Error: 'claude' command not found in this shell. Please install or make it available before using 'ask'."
         return 127
     fi
     if [ $# -eq 0 ]; then
-        printf "Ask Claude Code (end with Ctrl-D):\n"
+        if [ -t 0 ]; then
+            printf "Ask Claude Code (end with Ctrl-D):\n"
+        fi
         input="$(cat)"
         ( mkdir -p ~/.claude-ask && cd ~/.claude-ask && claude -p "$input" )
     else
         prompt="$*"
         ( mkdir -p ~/.claude-ask && cd ~/.claude-ask && claude -p "$prompt" )
     fi
-}'
+}
+BASHFUNC
 
-FISH_FUNCTION='function ask
+read -r -d '' FISH_FUNCTION << 'FISHFUNC'
+function ask
     if not type -q claude
         echo "Error: 'claude' command not found in this shell. Please install or make it available before using 'ask'."
         return 127
     end
-    set -l prev (pwd)
-    mkdir -p ~/.claude-ask
-    cd ~/.claude-ask
     if test (count $argv) -eq 0
-        echo "Ask Claude Code (end with Ctrl-D):"
-        set -l input (cat)
-        claude -p "$input"
+        if tty -s
+            echo "Ask Claude Code (end with Ctrl-D):"
+        end
+        # Run in a child fish so directory changes don't affect the current session.
+        # The child reads stdin (piped or interactive) and passes it to claude.
+        fish -c 'mkdir -p ~/.claude-ask; cd ~/.claude-ask; set -l input (string collect); claude -p "$input"'
     else
         set -l prompt (string join " " -- $argv)
-        claude -p "$prompt"
+        fish -c 'mkdir -p ~/.claude-ask; cd ~/.claude-ask; claude -p "$argv"' -- "$prompt"
     end
-    cd $prev
-end'
+end
+FISHFUNC
 
 echo "Detected shell: $SHELL_NAME"
 
