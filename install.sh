@@ -13,16 +13,14 @@ BASH_ZSH_FUNCTION='ask() {
         echo "Error: 'claude' command not found in this shell. Please install or make it available before using 'ask'."
         return 127
     fi
-    mkdir -p ~/.claude-ask
-    pushd ~/.claude-ask > /dev/null
     if [ $# -eq 0 ]; then
-        echo "Ask Claude Code:"
-        read -r input
-        claude -p "$input"
+        printf "Ask Claude Code (end with Ctrl-D):\n"
+        input="$(cat)"
+        ( mkdir -p ~/.claude-ask && cd ~/.claude-ask && claude -p "$input" )
     else
-        claude -p "$*"
+        prompt="$*"
+        ( mkdir -p ~/.claude-ask && cd ~/.claude-ask && claude -p "$prompt" )
     fi
-    popd > /dev/null
 }'
 
 FISH_FUNCTION='function ask
@@ -30,16 +28,18 @@ FISH_FUNCTION='function ask
         echo "Error: 'claude' command not found in this shell. Please install or make it available before using 'ask'."
         return 127
     end
+    set -l prev (pwd)
     mkdir -p ~/.claude-ask
-    pushd ~/.claude-ask
+    cd ~/.claude-ask
     if test (count $argv) -eq 0
-        echo "Ask Claude Code:"
-        read -l input
+        echo "Ask Claude Code (end with Ctrl-D):"
+        set -l input (cat)
         claude -p "$input"
     else
-        claude -p "$argv"
+        set -l prompt (string join " " -- $argv)
+        claude -p "$prompt"
     end
-    popd
+    cd $prev
 end'
 
 echo "Detected shell: $SHELL_NAME"
