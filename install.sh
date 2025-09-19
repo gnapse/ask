@@ -18,11 +18,12 @@ ask() {
         if [ -t 0 ]; then
             printf "Ask Claude Code (end with Ctrl-D):\n"
         fi
-        input="$(cat)"
-        ( mkdir -p ~/.claude-ask && cd ~/.claude-ask && claude -p "$input" )
+        # Stream stdin (interactive or piped) directly to claude -p
+        ( mkdir -p ~/.claude-ask && cd ~/.claude-ask && claude -p )
     else
         prompt="$*"
-        ( mkdir -p ~/.claude-ask && cd ~/.claude-ask && claude -p "$prompt" )
+        # Send prompt via stdin to avoid quoting/arg length issues
+        ( mkdir -p ~/.claude-ask && cd ~/.claude-ask && printf "%s" "$prompt" | claude -p )
     fi
 }
 BASHFUNC
@@ -37,12 +38,12 @@ function ask
         if tty -s
             echo "Ask Claude Code (end with Ctrl-D):"
         end
-        # Run in a child fish so directory changes don't affect the current session.
-        # The child reads stdin (piped or interactive) and passes it to claude.
-        fish -c 'mkdir -p ~/.claude-ask; cd ~/.claude-ask; set -l input (string collect); claude -p "$input"'
+        # Run in a child fish and stream stdin (piped or interactive) to claude -p
+        fish -c 'mkdir -p ~/.claude-ask; cd ~/.claude-ask; claude -p'
     else
         set -l prompt (string join " " -- $argv)
-        fish -c 'mkdir -p ~/.claude-ask; cd ~/.claude-ask; claude -p "$argv"' -- "$prompt"
+        # Pass prompt via stdin to avoid quoting issues
+        fish -c 'mkdir -p ~/.claude-ask; cd ~/.claude-ask; printf "%s" "$argv" | claude -p' -- "$prompt"
     end
 end
 FISHFUNC
