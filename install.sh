@@ -2,17 +2,17 @@
 
 # Install script for the ask function
 
-# Verify required CLI is available
-if ! command -v claude >/dev/null 2>&1; then
-    echo "Error: 'claude' CLI not found in PATH. Please install the Claude CLI and try again."
-    exit 1
-fi
+# No install-time dependency checks; assume 'claude' exists at runtime
 
 # Detect current shell
 SHELL_NAME=$(basename "$SHELL")
 
 # Function definitions
 BASH_ZSH_FUNCTION='ask() {
+    if ! command -v claude >/dev/null 2>&1; then
+        echo "Error: 'claude' command not found in this shell. Please install or make it available before using 'ask'."
+        return 127
+    fi
     mkdir -p ~/.claude-ask
     pushd ~/.claude-ask > /dev/null
     if [ $# -eq 0 ]; then
@@ -26,6 +26,10 @@ BASH_ZSH_FUNCTION='ask() {
 }'
 
 FISH_FUNCTION='function ask
+    if not type -q claude
+        echo "Error: 'claude' command not found in this shell. Please install or make it available before using 'ask'."
+        return 127
+    end
     mkdir -p ~/.claude-ask
     pushd ~/.claude-ask
     if test (count $argv) -eq 0
