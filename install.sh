@@ -100,15 +100,15 @@ fi
 
 echo "Ask function installed successfully!"
 
-# Try to source the config file to make function available immediately
+# Provide clear instructions to activate the function without auto-sourcing
+echo ""
+echo "Next steps:"
 if [ "$SHELL_NAME" = "fish" ]; then
-    echo "Fish shell detected. Please run: source $CONFIG_FILE"
-    echo "Or restart your shell to use the 'ask' function."
+    echo "- Run: source $CONFIG_FILE"
+    echo "  or restart your shell to start using 'ask'."
 else
-    echo "Sourcing $CONFIG_FILE to make function available immediately..."
-    if source "$CONFIG_FILE" 2>/dev/null; then
-        echo "Ask function is now available! Try: ask hello world"
-    else
-        echo "Could not source config file. Please restart your shell or run: source $CONFIG_FILE"
-    fi
+    echo "- Run: source $CONFIG_FILE"
+    echo "  or restart your shell to start using 'ask'."
 fi
+echo ""
+echo "Then try: ask hello world"
