@@ -2,6 +2,12 @@
 
 # Install script for the ask function
 
+# Verify required CLI is available
+if ! command -v claude >/dev/null 2>&1; then
+    echo "Error: 'claude' CLI not found in PATH. Please install the Claude CLI and try again."
+    exit 1
+fi
+
 # Detect current shell
 SHELL_NAME=$(basename "$SHELL")
 
