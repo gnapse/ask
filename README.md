@@ -45,30 +45,27 @@ source ~/.zshrc    # for zsh
 source ~/.config/fish/config.fish   # for fish
 ```
 
-## Manual Installation
+You can inspect the install script to see exactly what it does and perform the installation manually if preferred.
 
-### Bash/Zsh
+## Configuration
 
-Add to `~/.bashrc` or `~/.zshrc`:
+The installer sets up a minimal Claude Code configuration in `~/.claude-ask/.claude/settings.local.json` that allows only web search by default:
 
-```bash
-ask() {
-    mkdir -p ~/.claude-ask
-    pushd ~/.claude-ask > /dev/null
-    claude -p "$*"
-    popd > /dev/null
+```json
+{
+  "permissions": {
+    "allow": [
+      "WebSearch"
+    ],
+    "deny": [],
+    "ask": []
+  }
 }
 ```
 
-### Fish
+You can modify this file to customize Claude Code's permissions for your `ask` sessions. For example, you might want to allow additional tools like:
 
-Add to `~/.config/fish/config.fish`:
+- `"Bash(command --with args)"` - to run certain shell commands
+- `"WebFetch(domain:example.com)"` - to allow fetching web pages from certain domains
 
-```fish
-function ask
-    mkdir -p ~/.claude-ask
-    pushd ~/.claude-ask
-    claude -p "$argv"
-    popd
-end
-```
+Edit the file at `~/.claude-ask/.claude/settings.local.json` to adjust permissions to your needs. Remember that these permissions only apply to the isolated `ask` environment, not your regular Claude Code usage.

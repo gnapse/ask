@@ -74,6 +74,18 @@ fi
 echo "# Ask function - added by install script" >> "$CONFIG_FILE"
 echo "$FUNCTION_TO_ADD" >> "$CONFIG_FILE"
 
+# Create the ~/.claude-ask directory structure
+echo "Setting up ~/.claude-ask directory..."
+mkdir -p "$HOME/.claude-ask/.claude"
+
+# Copy settings file if it exists
+if [ -f "claude-ask-settings.json" ]; then
+    cp "claude-ask-settings.json" "$HOME/.claude-ask/.claude/settings.local.json"
+    echo "Copied Claude settings to ~/.claude-ask/.claude/settings.local.json"
+else
+    echo "Warning: claude-ask-settings.json not found in current directory"
+fi
+
 echo "Ask function installed successfully!"
 
 # Try to source the config file to make function available immediately
