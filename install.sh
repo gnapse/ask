@@ -1,0 +1,90 @@
+#!/bin/bash
+
+# Install script for the ask function
+
+# Detect current shell
+SHELL_NAME=$(basename "$SHELL")
+
+# Function definitions
+BASH_ZSH_FUNCTION='ask() {
+    mkdir -p ~/.claude-ask
+    pushd ~/.claude-ask > /dev/null
+    claude -p "$*"
+    popd > /dev/null
+}'
+
+FISH_FUNCTION='function ask
+    mkdir -p ~/.claude-ask
+    pushd ~/.claude-ask
+    claude -p "$argv"
+    popd
+end'
+
+echo "Detected shell: $SHELL_NAME"
+
+case "$SHELL_NAME" in
+    "bash")
+        CONFIG_FILE="$HOME/.bashrc"
+        FUNCTION_TO_ADD="$BASH_ZSH_FUNCTION"
+        ;;
+    "zsh")
+        CONFIG_FILE="$HOME/.zshrc"
+        FUNCTION_TO_ADD="$BASH_ZSH_FUNCTION"
+        ;;
+    "fish")
+        CONFIG_FILE="$HOME/.config/fish/config.fish"
+        FUNCTION_TO_ADD="$FISH_FUNCTION"
+        # Ensure fish config directory exists
+        mkdir -p "$HOME/.config/fish"
+        ;;
+    *)
+        echo "Unsupported shell: $SHELL_NAME"
+        echo "Please install manually following the README instructions."
+        exit 1
+        ;;
+esac
+
+# Check if function already exists and remove it
+FUNCTION_EXISTS=false
+if grep -q "ask()" "$CONFIG_FILE" 2>/dev/null || grep -q "function ask" "$CONFIG_FILE" 2>/dev/null; then
+    FUNCTION_EXISTS=true
+    echo "Ask function already exists in $CONFIG_FILE - updating..."
+
+    # Remove existing function and comment
+    if [ "$SHELL_NAME" = "fish" ]; then
+        # Remove fish function block
+        sed -i.bak '/# Ask function - added by install script/,/^end$/d' "$CONFIG_FILE" 2>/dev/null || true
+        sed -i.bak '/^function ask$/,/^end$/d' "$CONFIG_FILE" 2>/dev/null || true
+    else
+        # Remove bash/zsh function block
+        sed -i.bak '/# Ask function - added by install script/,/^}$/d' "$CONFIG_FILE" 2>/dev/null || true
+        sed -i.bak '/^ask() {$/,/^}$/d' "$CONFIG_FILE" 2>/dev/null || true
+    fi
+
+    # Clean up backup file
+    rm -f "$CONFIG_FILE.bak" 2>/dev/null || true
+else
+    echo "Installing ask function to $CONFIG_FILE..."
+fi
+
+# Add function to config file
+if [ "$FUNCTION_EXISTS" = false ]; then
+    echo "" >> "$CONFIG_FILE"
+fi
+echo "# Ask function - added by install script" >> "$CONFIG_FILE"
+echo "$FUNCTION_TO_ADD" >> "$CONFIG_FILE"
+
+echo "Ask function installed successfully!"
+
+# Try to source the config file to make function available immediately
+if [ "$SHELL_NAME" = "fish" ]; then
+    echo "Fish shell detected. Please run: source $CONFIG_FILE"
+    echo "Or restart your shell to use the 'ask' function."
+else
+    echo "Sourcing $CONFIG_FILE to make function available immediately..."
+    if source "$CONFIG_FILE" 2>/dev/null; then
+        echo "Ask function is now available! Try: ask hello world"
+    else
+        echo "Could not source config file. Please restart your shell or run: source $CONFIG_FILE"
+    fi
+fi
